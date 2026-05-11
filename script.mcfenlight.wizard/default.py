@@ -307,33 +307,6 @@ def main():
     xbmc.executebuiltin('InstallAddon(plugin.video.mcfenlight)')
     xbmc.sleep(8000)
 
-    # Optional: Install Emby
-    if install_emby:
-        dialog.update(68, 'Downloading Emby repository...')
-        try:
-            emby_zip = os.path.join(TEMP_PATH, 'repository.emby.kodi.zip')
-            download_file(EMBY_REPO_ZIP, emby_zip)
-            dialog.update(72, 'Installing Emby repository...')
-            install_zip(emby_zip)
-            os.remove(emby_zip)
-            xbmc.executebuiltin('UpdateLocalAddons')
-            xbmc.sleep(2000)
-            xbmc.executeJSONRPC(json.dumps({
-                'jsonrpc': '2.0', 'method': 'Addons.SetAddonEnabled',
-                'params': {'addonid': 'repository.emby.kodi', 'enabled': True}, 'id': 1
-            }))
-            xbmc.executebuiltin('UpdateAddonRepos')
-            xbmc.sleep(6000)
-            dialog.update(76, 'Installing Emby for Kodi...')
-            xbmc.executebuiltin('InstallAddon(plugin.video.emby-next-gen)')
-            xbmc.sleep(5000)
-            xbmc.executebuiltin('InstallAddon(plugin.service.emby-next-gen)')
-            xbmc.sleep(5000)
-            log('Emby addons installed')
-        except Exception as e:
-            log('Emby install failed: %s' % str(e))
-            ok_dialog.notification('McFenlight Wizard', 'Emby install failed — you can install it manually later')
-
     # Step 3: Set Kodi language defaults
     dialog.update(85, 'Setting language preferences...')
     set_kodi_language_defaults()
@@ -358,14 +331,50 @@ def main():
     if trakt_result or rd_result:
         write_mcfenlight_settings(trakt_result, rd_result)
 
-    # Done
+    # Done — McFenlight summary
     msg = 'McFenlight setup complete!\n\n'
     msg += 'Trakt: %s\n' % ('Authorised' if trakt_result else 'Skipped — set up in McFenlight settings later')
     msg += 'Real-Debrid: %s\n' % ('Authorised' if rd_result else 'Skipped — set up in McFenlight settings later')
     if install_emby:
-        msg += 'Emby: Installed — run it from Add-ons to connect to your server\n'
-    msg += '\nPlease restart Kodi now for everything to take effect.'
+        msg += '\nEmby will be installed next — it has its own setup wizard.\n'
+        msg += 'Kodi will restart automatically when Emby installs.'
+    else:
+        msg += '\nPlease restart Kodi now for everything to take effect.'
     ok_dialog.ok('McFenlight Wizard', msg)
+
+    # Install Emby LAST — its own wizard takes over Kodi on first run
+    if install_emby:
+        dialog.create('McFenlight Wizard', 'Downloading Emby repository...')
+        dialog.update(0)
+        try:
+            emby_zip = os.path.join(TEMP_PATH, 'repository.emby.kodi.zip')
+            download_file(EMBY_REPO_ZIP, emby_zip)
+            dialog.update(20, 'Installing Emby repository...')
+            install_zip(emby_zip)
+            os.remove(emby_zip)
+            xbmc.executebuiltin('UpdateLocalAddons')
+            xbmc.sleep(2000)
+            dialog.update(40, 'Enabling Emby repository...')
+            xbmc.executeJSONRPC(json.dumps({
+                'jsonrpc': '2.0', 'method': 'Addons.SetAddonEnabled',
+                'params': {'addonid': 'repository.emby.kodi', 'enabled': True}, 'id': 1
+            }))
+            xbmc.executebuiltin('UpdateAddonRepos')
+            xbmc.sleep(6000)
+            dialog.update(60, 'Installing Emby for Kodi...')
+            xbmc.executebuiltin('InstallAddon(plugin.video.emby-next-gen)')
+            xbmc.sleep(5000)
+            dialog.update(80, 'Installing Emby service...')
+            xbmc.executebuiltin('InstallAddon(plugin.service.emby-next-gen)')
+            xbmc.sleep(5000)
+            dialog.update(100, 'Emby installed!')
+            xbmc.sleep(1000)
+            dialog.close()
+            log('Emby addons installed')
+        except Exception as e:
+            log('Emby install failed: %s' % str(e))
+            dialog.close()
+            ok_dialog.ok('McFenlight Wizard', 'Emby install failed: %s\n\nYou can install it manually later from the Emby repo.' % str(e))
 
     log('Wizard complete')
 
