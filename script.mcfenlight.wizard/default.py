@@ -293,8 +293,16 @@ def main():
         ok_dialog.ok('McFenlight Wizard', 'Failed to install McFenlight: %s' % str(e))
         return
 
+    # Install McFenlight's dependencies from the official Kodi repo
+    dialog.update(75, 'Installing dependencies (requests, PIL)...')
+    xbmc.executebuiltin('InstallAddon(script.module.requests)')
+    xbmc.sleep(5000)
+    xbmc.executebuiltin('InstallAddon(script.module.pil)')
+    xbmc.sleep(5000)
+    log('Dependencies installed')
+
     # Register everything with Kodi and enable
-    dialog.update(75, 'Activating addons...')
+    dialog.update(82, 'Activating addons...')
     xbmc.executebuiltin('UpdateLocalAddons')
     xbmc.sleep(3000)
     for addon_id in ['repository.cocoscrapers', 'repository.mcfenlight',
