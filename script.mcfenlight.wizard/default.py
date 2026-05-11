@@ -274,19 +274,38 @@ def main():
         ok_dialog.ok('McFenlight Wizard', 'Failed to download McFenlight repository: %s' % str(e))
         return
 
-    # Refresh addon list
-    dialog.update(50, 'Refreshing addon list...')
+    # Refresh addon list and enable repos
+    dialog.update(45, 'Refreshing addon list...')
     xbmc.executebuiltin('UpdateLocalAddons')
     xbmc.sleep(3000)
 
-    # Step 2: Install addons from repos
-    dialog.update(55, 'Installing CocoScrapers module...')
-    xbmc.executebuiltin('InstallAddon(script.module.cocoscrapers)')
-    xbmc.sleep(5000)
+    dialog.update(48, 'Enabling CocoScrapers repository...')
+    xbmc.executeJSONRPC(json.dumps({
+        'jsonrpc': '2.0', 'method': 'Addons.SetAddonEnabled',
+        'params': {'addonid': 'repository.cocoscrapers', 'enabled': True}, 'id': 1
+    }))
+    xbmc.sleep(1000)
 
-    dialog.update(60, 'Installing McFenlight...')
+    dialog.update(50, 'Enabling McFenlight repository...')
+    xbmc.executeJSONRPC(json.dumps({
+        'jsonrpc': '2.0', 'method': 'Addons.SetAddonEnabled',
+        'params': {'addonid': 'repository.mcfenlight', 'enabled': True}, 'id': 1
+    }))
+    xbmc.sleep(1000)
+
+    # Force repos to fetch their addon lists
+    dialog.update(52, 'Waiting for repositories to update...')
+    xbmc.executebuiltin('UpdateAddonRepos')
+    xbmc.sleep(8000)
+
+    # Step 2: Install addons from repos
+    dialog.update(60, 'Installing CocoScrapers module...')
+    xbmc.executebuiltin('InstallAddon(script.module.cocoscrapers)')
+    xbmc.sleep(8000)
+
+    dialog.update(70, 'Installing McFenlight...')
     xbmc.executebuiltin('InstallAddon(plugin.video.mcfenlight)')
-    xbmc.sleep(5000)
+    xbmc.sleep(8000)
 
     # Optional: Install Emby
     if install_emby:
@@ -298,7 +317,13 @@ def main():
             install_zip(emby_zip)
             os.remove(emby_zip)
             xbmc.executebuiltin('UpdateLocalAddons')
-            xbmc.sleep(3000)
+            xbmc.sleep(2000)
+            xbmc.executeJSONRPC(json.dumps({
+                'jsonrpc': '2.0', 'method': 'Addons.SetAddonEnabled',
+                'params': {'addonid': 'repository.emby.kodi', 'enabled': True}, 'id': 1
+            }))
+            xbmc.executebuiltin('UpdateAddonRepos')
+            xbmc.sleep(6000)
             dialog.update(76, 'Installing Emby for Kodi...')
             xbmc.executebuiltin('InstallAddon(plugin.video.emby-next-gen)')
             xbmc.sleep(5000)
