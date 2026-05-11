@@ -214,7 +214,15 @@ def write_mcfenlight_settings(trakt_result, rd_result):
         set_val('rd.token', 'string', 'empty_setting', rd_result.get('token', ''))
         set_val('rd.refresh', 'string', 'empty_setting', rd_result.get('refresh', ''))
         set_val('rd.account_id', 'string', 'empty_setting', 'true')
+        set_val('rd.enabled', 'boolean', 'false', 'true')
+        set_val('provider.rd_cloud', 'boolean', 'false', 'true')
         log('RD tokens written to settings DB')
+
+    # Enable CocoScrapers as external scraper provider
+    set_val('provider.external', 'boolean', 'false', 'true')
+    set_val('external_scraper.module', 'string', 'empty_setting', 'script.module.cocoscrapers')
+    set_val('external_scraper.name', 'string', 'empty_setting', 'cocoscrapers')
+    log('CocoScrapers enabled as external scraper')
 
     conn.commit()
     conn.close()
@@ -334,9 +342,8 @@ def main():
     else:
         rd_result = None
 
-    # Step 6: Write tokens to McFenlight settings
-    if trakt_result or rd_result:
-        write_mcfenlight_settings(trakt_result, rd_result)
+    # Step 6: Write tokens and enable CocoScrapers in McFenlight settings
+    write_mcfenlight_settings(trakt_result, rd_result)
 
     # Install Emby REPO only (not the addon — its first-run wizard crashes Kodi)
     if install_emby:
