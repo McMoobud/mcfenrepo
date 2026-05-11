@@ -235,6 +235,15 @@ def write_mcfenlight_settings(trakt_result, rd_result):
     log('CocoScrapers enabled as external scraper')
 
     conn.commit()
+
+    # Verify writes landed
+    verify = conn.execute('SELECT setting_id, setting_value FROM settings WHERE setting_id IN (?, ?, ?, ?)',
+                          ('rd.enabled', 'provider.external', 'external_scraper.module', 'rd.token')).fetchall()
+    log('Settings DB path: %s' % db_path)
+    log('Settings DB exists: %s' % os.path.exists(db_path))
+    log('Verified settings: %s' % str(verify))
+    total = conn.execute('SELECT COUNT(*) FROM settings').fetchone()[0]
+    log('Total settings in DB: %d' % total)
     conn.close()
 
 
