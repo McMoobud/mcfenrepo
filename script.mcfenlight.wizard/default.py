@@ -246,6 +246,11 @@ def write_mcfenlight_settings(trakt_result, rd_result):
     log('Total settings in DB: %d' % total)
     conn.close()
 
+    # Force McFenlight to reload settings from DB into memory cache
+    xbmc.executebuiltin('RunPlugin(plugin://plugin.video.mcfenlight/?mode=sync_settings&silent=true)')
+    xbmc.sleep(3000)
+    log('Triggered McFenlight sync_settings reload')
+
 
 def main():
     dialog = xbmcgui.DialogProgress()
