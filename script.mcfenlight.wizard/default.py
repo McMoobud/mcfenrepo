@@ -24,6 +24,9 @@ MCFENLIGHT_REPO_ZIP = 'https://mcmoobud.github.io/mcfenrepo/repository.mcfenligh
 COCOSCRAPERS_REPO_ZIP = 'https://raw.githubusercontent.com/CocoJoe2411/repository.cocoscrapers/master/zips/repository.cocoscrapers/repository.cocoscrapers-1.0.0.zip'
 EMBY_REPO_ZIP = 'https://embydata.com/downloads/addons/xbmb3c/multi-repo/repositories/repository.emby.kodi/repository.emby.kodi-1.0.8.zip'
 
+MCFENLIGHT_ADDON_ZIP = 'https://mcmoobud.github.io/mcfenrepo/plugin.video.mcfenlight/plugin.video.mcfenlight-2.2.04.zip'
+COCOSCRAPERS_ADDON_ZIP = 'https://raw.githubusercontent.com/CocoJoe2411/repository.cocoscrapers/master/zips/script.module.cocoscrapers/script.module.cocoscrapers-1.0.0.zip'
+
 TRAKT_CLIENT_ID = 'd670d157485c272e4a9385da4a8b3d1ba1d248ee93a619309ebd7f9cf6a67351'
 TRAKT_CLIENT_SECRET = '7efa8413b83e997632598f39349444dc6b2d64cae668ff0bf1ca38986a4e8aa5'
 
@@ -45,19 +48,6 @@ def install_zip(zip_path):
     with zipfile.ZipFile(zip_path, 'r') as zf:
         zf.extractall(ADDONS_PATH)
 
-
-def wait_for_addon(addon_id, timeout=30):
-    start = time.time()
-    while time.time() - start < timeout:
-        if xbmc.getCondVisibility('System.HasAddon(%s)' % addon_id):
-            return True
-        xbmc.sleep(500)
-    return False
-
-
-def install_addon_from_repo(addon_id):
-    xbmc.executebuiltin('InstallAddon(%s)' % addon_id)
-    return wait_for_addon(addon_id, timeout=60)
 
 
 def set_kodi_language_defaults():
@@ -274,38 +264,47 @@ def main():
         ok_dialog.ok('McFenlight Wizard', 'Failed to download McFenlight repository: %s' % str(e))
         return
 
-    # Refresh addon list and enable repos
-    dialog.update(45, 'Refreshing addon list...')
+    # Step 2: Download and install addons directly (repos are for future updates)
+    dialog.update(45, 'Downloading CocoScrapers module...')
+    try:
+        coco_addon_zip = os.path.join(TEMP_PATH, 'script.module.cocoscrapers.zip')
+        download_file(COCOSCRAPERS_ADDON_ZIP, coco_addon_zip)
+        dialog.update(55, 'Installing CocoScrapers module...')
+        install_zip(coco_addon_zip)
+        os.remove(coco_addon_zip)
+        log('CocoScrapers module extracted')
+    except Exception as e:
+        log('CocoScrapers module install failed: %s' % str(e))
+        dialog.close()
+        ok_dialog.ok('McFenlight Wizard', 'Failed to install CocoScrapers: %s' % str(e))
+        return
+
+    dialog.update(60, 'Downloading McFenlight...')
+    try:
+        mcfen_addon_zip = os.path.join(TEMP_PATH, 'plugin.video.mcfenlight.zip')
+        download_file(MCFENLIGHT_ADDON_ZIP, mcfen_addon_zip)
+        dialog.update(70, 'Installing McFenlight...')
+        install_zip(mcfen_addon_zip)
+        os.remove(mcfen_addon_zip)
+        log('McFenlight addon extracted')
+    except Exception as e:
+        log('McFenlight addon install failed: %s' % str(e))
+        dialog.close()
+        ok_dialog.ok('McFenlight Wizard', 'Failed to install McFenlight: %s' % str(e))
+        return
+
+    # Register everything with Kodi and enable
+    dialog.update(75, 'Activating addons...')
     xbmc.executebuiltin('UpdateLocalAddons')
     xbmc.sleep(3000)
-
-    dialog.update(48, 'Enabling CocoScrapers repository...')
-    xbmc.executeJSONRPC(json.dumps({
-        'jsonrpc': '2.0', 'method': 'Addons.SetAddonEnabled',
-        'params': {'addonid': 'repository.cocoscrapers', 'enabled': True}, 'id': 1
-    }))
-    xbmc.sleep(1000)
-
-    dialog.update(50, 'Enabling McFenlight repository...')
-    xbmc.executeJSONRPC(json.dumps({
-        'jsonrpc': '2.0', 'method': 'Addons.SetAddonEnabled',
-        'params': {'addonid': 'repository.mcfenlight', 'enabled': True}, 'id': 1
-    }))
-    xbmc.sleep(1000)
-
-    # Force repos to fetch their addon lists
-    dialog.update(52, 'Waiting for repositories to update...')
-    xbmc.executebuiltin('UpdateAddonRepos')
-    xbmc.sleep(8000)
-
-    # Step 2: Install addons from repos
-    dialog.update(60, 'Installing CocoScrapers module...')
-    xbmc.executebuiltin('InstallAddon(script.module.cocoscrapers)')
-    xbmc.sleep(8000)
-
-    dialog.update(70, 'Installing McFenlight...')
-    xbmc.executebuiltin('InstallAddon(plugin.video.mcfenlight)')
-    xbmc.sleep(8000)
+    for addon_id in ['repository.cocoscrapers', 'repository.mcfenlight',
+                     'script.module.cocoscrapers', 'plugin.video.mcfenlight']:
+        xbmc.executeJSONRPC(json.dumps({
+            'jsonrpc': '2.0', 'method': 'Addons.SetAddonEnabled',
+            'params': {'addonid': addon_id, 'enabled': True}, 'id': 1
+        }))
+        log('Enabled %s' % addon_id)
+    xbmc.sleep(2000)
 
     # Step 3: Set Kodi language defaults
     dialog.update(85, 'Setting language preferences...')
