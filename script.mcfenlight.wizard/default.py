@@ -189,15 +189,25 @@ def realdebrid_auth(dialog):
 
 def write_mcfenlight_settings(trakt_result, rd_result):
     db_dir = os.path.join(ADDON_DATA, 'plugin.video.mcfenlight', 'databases')
-    os.makedirs(db_dir, exist_ok=True)
     db_path = os.path.join(db_dir, 'settings.db')
 
-    conn = sqlite3.connect(db_path)
+    # Wait for McFenlight service to create the DB (up to 30s)
+    for _ in range(60):
+        if os.path.exists(db_path):
+            break
+        xbmc.sleep(500)
+    else:
+        log('Settings DB not found at %s — creating it' % db_path)
+        os.makedirs(db_dir, exist_ok=True)
+
+    conn = sqlite3.connect(db_path, timeout=20)
+    conn.execute('PRAGMA synchronous = OFF')
+    conn.execute('PRAGMA journal_mode = OFF')
     c = conn.cursor()
-    c.execute('CREATE TABLE IF NOT EXISTS settings (setting_id TEXT PRIMARY KEY, setting_type TEXT, setting_default TEXT, setting_value TEXT)')
+    c.execute('CREATE TABLE IF NOT EXISTS settings (setting_id text not null unique, setting_type text, setting_default text, setting_value text)')
 
     def set_val(sid, stype, default, value):
-        c.execute('INSERT OR REPLACE INTO settings (setting_id, setting_type, setting_default, setting_value) VALUES (?, ?, ?, ?)',
+        c.execute('INSERT OR REPLACE INTO settings VALUES (?, ?, ?, ?)',
                   (sid, stype, default, value))
 
     if trakt_result:
@@ -320,7 +330,8 @@ def main():
             'params': {'addonid': addon_id, 'enabled': True}, 'id': 1
         }))
         log('Enabled %s' % addon_id)
-    xbmc.sleep(2000)
+    # Give McFenlight service time to initialize its databases
+    xbmc.sleep(5000)
 
     # Step 3: Set Kodi language defaults
     dialog.update(85, 'Setting language preferences...')
