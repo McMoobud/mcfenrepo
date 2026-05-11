@@ -387,6 +387,10 @@ def main():
         except Exception as e:
             log('Emby repo install failed: %s' % str(e))
 
+    # Add McFenlight to Confluence skin home screen shortcut
+    xbmc.executebuiltin('Skin.SetString(HomeVideosButton1,plugin.video.mcfenlight)')
+    log('McFenlight added to home screen video shortcut 1')
+
     # Done
     msg = 'McFenlight setup complete!\n\n'
     msg += 'Trakt: %s\n' % ('Authorised' if trakt_result else 'Skipped — set up in McFenlight settings later')
