@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="repository.mcfenlight" name="McFenlight Repository" version="1.0.1" provider-name="McMoobud">
-    <requires>
-        <import addon="xbmc.addon" version="12.0.0"/>
-    </requires>
+<addon id="repository.mcfenlight" name="McFenlight Repository" version="1.0.2" provider-name="McMoobud">
     <extension point="xbmc.addon.repository" name="McFenlight Repository">
-        <dir>
-            <info compressed="false">https://mcmoobud.github.io/mcfenrepo/addons.xml</info>
-            <checksum>https://mcmoobud.github.io/mcfenrepo/addons.xml.md5</checksum>
-            <datadir zipped="true">https://mcmoobud.github.io/mcfenrepo/</datadir>
-        </dir>
+        <info compressed="false">https://mcmoobud.github.io/mcfenrepo/addons.xml</info>
+        <checksum>https://mcmoobud.github.io/mcfenrepo/addons.xml.md5</checksum>
+        <datadir zipped="true">https://mcmoobud.github.io/mcfenrepo/</datadir>
     </extension>
     <extension point="xbmc.addon.metadata">
         <summary lang="en">McFenlight Repository</summary>
