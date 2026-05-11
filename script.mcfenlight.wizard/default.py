@@ -22,6 +22,7 @@ TEMP_PATH = xbmcvfs.translatePath('special://temp/')
 
 MCFENLIGHT_REPO_ZIP = 'https://mcmoobud.github.io/mcfenrepo/repository.mcfenlight/repository.mcfenlight-1.0.3.zip'
 COCOSCRAPERS_REPO_ZIP = 'https://raw.githubusercontent.com/CocoJoe2411/repository.cocoscrapers/master/zips/repository.cocoscrapers/repository.cocoscrapers-1.0.0.zip'
+EMBY_REPO_ZIP = 'https://embydata.com/downloads/addons/xbmb3c/multi-repo/repositories/repository.emby.kodi/repository.emby.kodi-1.0.8.zip'
 
 TRAKT_CLIENT_ID = 'd670d157485c272e4a9385da4a8b3d1ba1d248ee93a619309ebd7f9cf6a67351'
 TRAKT_CLIENT_SECRET = '7efa8413b83e997632598f39349444dc6b2d64cae668ff0bf1ca38986a4e8aa5'
@@ -239,6 +240,10 @@ def main():
                            'Continue?'):
         return
 
+    install_emby = ok_dialog.yesno('McFenlight Wizard',
+                                   'Would you also like to install Emby for Kodi?\n\n'
+                                   '(For streaming your own media library via Emby Server)')
+
     # Step 1: Download and install repos
     dialog.create('McFenlight Wizard', 'Downloading CocoScrapers repository...')
     dialog.update(0)
@@ -279,12 +284,33 @@ def main():
     xbmc.executebuiltin('InstallAddon(script.module.cocoscrapers)')
     xbmc.sleep(5000)
 
-    dialog.update(70, 'Installing McFenlight...')
+    dialog.update(60, 'Installing McFenlight...')
     xbmc.executebuiltin('InstallAddon(plugin.video.mcfenlight)')
     xbmc.sleep(5000)
 
+    # Optional: Install Emby
+    if install_emby:
+        dialog.update(68, 'Downloading Emby repository...')
+        try:
+            emby_zip = os.path.join(TEMP_PATH, 'repository.emby.kodi.zip')
+            download_file(EMBY_REPO_ZIP, emby_zip)
+            dialog.update(72, 'Installing Emby repository...')
+            install_zip(emby_zip)
+            os.remove(emby_zip)
+            xbmc.executebuiltin('UpdateLocalAddons')
+            xbmc.sleep(3000)
+            dialog.update(76, 'Installing Emby for Kodi...')
+            xbmc.executebuiltin('InstallAddon(plugin.video.emby-next-gen)')
+            xbmc.sleep(5000)
+            xbmc.executebuiltin('InstallAddon(plugin.service.emby-next-gen)')
+            xbmc.sleep(5000)
+            log('Emby addons installed')
+        except Exception as e:
+            log('Emby install failed: %s' % str(e))
+            ok_dialog.notification('McFenlight Wizard', 'Emby install failed — you can install it manually later')
+
     # Step 3: Set Kodi language defaults
-    dialog.update(80, 'Setting language preferences...')
+    dialog.update(85, 'Setting language preferences...')
     set_kodi_language_defaults()
 
     dialog.update(90, 'Addon installation complete!')
@@ -310,8 +336,10 @@ def main():
     # Done
     msg = 'McFenlight setup complete!\n\n'
     msg += 'Trakt: %s\n' % ('Authorised' if trakt_result else 'Skipped — set up in McFenlight settings later')
-    msg += 'Real-Debrid: %s\n\n' % ('Authorised' if rd_result else 'Skipped — set up in McFenlight settings later')
-    msg += 'Please restart Kodi now for everything to take effect.'
+    msg += 'Real-Debrid: %s\n' % ('Authorised' if rd_result else 'Skipped — set up in McFenlight settings later')
+    if install_emby:
+        msg += 'Emby: Installed — run it from Add-ons to connect to your server\n'
+    msg += '\nPlease restart Kodi now for everything to take effect.'
     ok_dialog.ok('McFenlight Wizard', msg)
 
     log('Wizard complete')
