@@ -291,6 +291,11 @@ def main():
     xbmc.executebuiltin('Skin.SetString(HomeVideosButton1,plugin.video.mcfenlight)')
     log('McFenlight added to home screen video shortcut 1')
 
+    # Clean up home menu — hide unused items
+    for item in ['LiveTV', 'Radio', 'Games', 'Weather', 'Pictures']:
+        xbmc.executebuiltin('Skin.SetBool(HomeMenuNo%sButton)' % item)
+    log('Hidden unused home menu items')
+
     # Done
     msg = 'McFenlight setup complete!\n\n'
     msg += 'TorBox: Ready (pre-configured)\n'

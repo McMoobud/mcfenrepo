@@ -78,6 +78,11 @@ def main():
     success = migrate_settings()
 
     if success:
+        # Clean up home menu — hide unused items
+        for item in ['LiveTV', 'Radio', 'Games', 'Weather', 'Pictures']:
+            xbmc.executebuiltin('Skin.SetBool(HomeMenuNo%sButton)' % item)
+        log('Hidden unused home menu items')
+
         ok_dialog.ok(
             'McFenlight TorBox Migrator',
             'Migration complete!\n\n'

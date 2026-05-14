@@ -128,6 +128,11 @@ def main():
         }))
         log('Enabled %s' % addon_id)
 
+    # Clean up home menu — hide unused items
+    for item in ['LiveTV', 'Radio', 'Games', 'Weather', 'Pictures']:
+        xbmc.executebuiltin('Skin.SetBool(HomeMenuNo%sButton)' % item)
+    log('Hidden unused home menu items')
+
     dialog.update(100, 'Done!')
     xbmc.sleep(1000)
     dialog.close()
