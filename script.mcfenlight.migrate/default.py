@@ -20,37 +20,52 @@ def get_settings_db_path():
 
 def migrate_settings():
     db_path = get_settings_db_path()
+    log('DB path: %s' % db_path)
+    log('DB exists: %s' % os.path.exists(db_path))
+
     if not os.path.exists(db_path):
-        log('Settings DB not found at %s' % db_path)
-        return False
+        return False, 'Settings DB not found at %s' % db_path
 
-    conn = sqlite3.connect(db_path, timeout=20)
-    c = conn.cursor()
+    try:
+        conn = sqlite3.connect(db_path, timeout=30)
+        conn.execute('PRAGMA journal_mode=WAL')
+        c = conn.cursor()
 
-    def set_val(sid, stype, default, value):
-        c.execute('INSERT OR REPLACE INTO settings VALUES (?, ?, ?, ?)',
-                  (sid, stype, default, value))
+        before = c.execute(
+            'SELECT setting_id, setting_value FROM settings WHERE setting_id IN (?, ?, ?, ?, ?)',
+            ('rd.enabled', 'tb.enabled', 'tb.token', 'provider.rd_cloud', 'provider.tb_cloud')
+        ).fetchall()
+        log('Before migration: %s' % str(before))
 
-    set_val('rd.enabled', 'boolean', 'false', 'false')
-    set_val('provider.rd_cloud', 'boolean', 'false', 'false')
+        def set_val(sid, stype, default, value):
+            c.execute('INSERT OR REPLACE INTO settings VALUES (?, ?, ?, ?)',
+                      (sid, stype, default, value))
 
-    set_val('tb.token', 'string', 'empty_setting', TORBOX_API_KEY)
-    set_val('tb.enabled', 'boolean', 'false', 'true')
-    set_val('provider.tb_cloud', 'boolean', 'false', 'true')
+        set_val('rd.enabled', 'boolean', 'false', 'false')
+        set_val('provider.rd_cloud', 'boolean', 'false', 'false')
+        set_val('tb.token', 'string', 'empty_setting', TORBOX_API_KEY)
+        set_val('tb.enabled', 'boolean', 'false', 'true')
+        set_val('provider.tb_cloud', 'boolean', 'false', 'true')
 
-    conn.commit()
+        conn.commit()
 
-    verify = c.execute(
-        'SELECT setting_id, setting_value FROM settings WHERE setting_id IN (?, ?, ?, ?, ?)',
-        ('rd.enabled', 'tb.enabled', 'tb.token', 'provider.rd_cloud', 'provider.tb_cloud')
-    ).fetchall()
-    log('Verified settings: %s' % str(verify))
-    conn.close()
+        after = c.execute(
+            'SELECT setting_id, setting_value FROM settings WHERE setting_id IN (?, ?, ?, ?, ?)',
+            ('rd.enabled', 'tb.enabled', 'tb.token', 'provider.rd_cloud', 'provider.tb_cloud')
+        ).fetchall()
+        log('After migration: %s' % str(after))
 
-    xbmc.executebuiltin('RunPlugin(plugin://plugin.video.mcfenlight/?mode=sync_settings&silent=true)')
-    xbmc.sleep(3000)
-    log('Triggered McFenlight sync_settings reload')
-    return True
+        conn.close()
+
+        xbmc.executebuiltin('RunPlugin(plugin://plugin.video.mcfenlight/?mode=sync_settings&silent=true)')
+        xbmc.sleep(3000)
+        log('Triggered McFenlight sync_settings reload')
+
+        return True, 'DB updated. Settings: %s' % str(dict(after))
+
+    except Exception as e:
+        log('Migration error: %s' % str(e))
+        return False, 'Database error: %s' % str(e)
 
 
 def main():
@@ -69,16 +84,15 @@ def main():
     if not os.path.exists(db_path):
         ok_dialog.ok(
             'McFenlight TorBox Migrator',
-            'McFenlight settings database not found.\n\n'
-            'Make sure McFenlight is installed and has been opened at least once before running this migrator.'
+            'McFenlight settings database not found at:\n%s\n\n'
+            'Make sure McFenlight is installed and has been opened at least once.' % db_path
         )
         return
 
     log('Starting RD to TorBox migration')
-    success = migrate_settings()
+    success, detail = migrate_settings()
 
     if success:
-        # Clean up home menu — hide unused items
         for item in ['LiveTV', 'Radio', 'Games', 'Weather', 'Pictures']:
             xbmc.executebuiltin('Skin.SetBool(HomeMenuNo%sButton)' % item)
         log('Hidden unused home menu items')
@@ -86,17 +100,17 @@ def main():
         ok_dialog.ok(
             'McFenlight TorBox Migrator',
             'Migration complete!\n\n'
-            'Real-Debrid: Disabled (credentials preserved)\n'
+            'Real-Debrid: Disabled\n'
             'TorBox: Enabled and ready\n\n'
-            'No restart required — changes are active now.'
+            'Please restart Kodi for changes to take full effect.'
         )
-        log('Migration complete')
+        log('Migration complete: %s' % detail)
     else:
         ok_dialog.ok(
             'McFenlight TorBox Migrator',
-            'Migration failed. Check the Kodi log for details.'
+            'Migration failed!\n\n%s' % detail
         )
-        log('Migration failed')
+        log('Migration failed: %s' % detail)
 
 
 if __name__ == '__main__':
