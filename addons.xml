@@ -42,43 +42,4 @@
             <platform>all</platform>
         </extension>
     </addon>
-    <addon id="script.mcfenlight.setup" name="McFenlight Setup" version="1.0.0" provider-name="McMoobud">
-        <requires>
-            <import addon="xbmc.python" version="3.0.0" />
-        </requires>
-        <extension point="xbmc.python.script" library="default.py">
-            <provides>executable</provides>
-        </extension>
-        <extension point="xbmc.addon.metadata">
-            <summary lang="en">One-click McFenlight setup with TorBox</summary>
-            <description lang="en">Installs McFenlight, CocoScrapers, and configures Trakt and TorBox automatically. For fresh Kodi installs.</description>
-            <platform>all</platform>
-        </extension>
-    </addon>
-    <addon id="script.mcfenlight.migrate" name="McFenlight TorBox Migrator" version="1.0.0" provider-name="McMoobud">
-        <requires>
-            <import addon="xbmc.python" version="3.0.0" />
-        </requires>
-        <extension point="xbmc.python.script" library="default.py">
-            <provides>executable</provides>
-        </extension>
-        <extension point="xbmc.addon.metadata">
-            <summary lang="en">Migrate McFenlight from Real-Debrid to TorBox</summary>
-            <description lang="en">Switches your existing McFenlight installation from Real-Debrid to TorBox. All other settings preserved.</description>
-            <platform>all</platform>
-        </extension>
-    </addon>
-    <addon id="script.mcfenlight.emby" name="McFenlight Emby Setup" version="1.0.0" provider-name="McMoobud">
-        <requires>
-            <import addon="xbmc.python" version="3.0.0" />
-        </requires>
-        <extension point="xbmc.python.script" library="default.py">
-            <provides>executable</provides>
-        </extension>
-        <extension point="xbmc.addon.metadata">
-            <summary lang="en">Install Emby for Kodi</summary>
-            <description lang="en">Installs the Emby repository and Emby for Kodi addon.</description>
-            <platform>all</platform>
-        </extension>
-    </addon>
 </addons>
