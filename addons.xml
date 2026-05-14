@@ -90,14 +90,14 @@
             </assets>
         </extension>
     </addon>
-    <addon id="service.mcfenlight.backgrounds" name="McFenlight Backgrounds" version="1.0.1" provider-name="McMoobud">
+    <addon id="service.mcfenlight.backgrounds" name="McFenlight Backgrounds" version="1.0.2" provider-name="McMoobud">
         <requires>
             <import addon="xbmc.python" version="3.0.0" />
         </requires>
         <extension point="xbmc.service" library="service.py" start="startup" />
         <extension point="xbmc.addon.metadata">
-            <summary lang="en">Movie backgrounds from your library for your home screen</summary>
-            <description lang="en">Picks random movie fanart from your Kodi library and sets them as your home screen slideshow background. Refreshes on every Kodi startup.</description>
+            <summary lang="en">Custom splash screen and background for McFenlight</summary>
+            <description lang="en">Installs a custom Kodi splash screen and Confluence background image.</description>
             <platform>all</platform>
             <assets>
                 <icon>icon.png</icon>
