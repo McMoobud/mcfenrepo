@@ -10,5 +10,8 @@
         <summary lang="en">One-click McFenlight setup with TorBox</summary>
         <description lang="en">Installs McFenlight, CocoScrapers, and configures Trakt and TorBox automatically. For fresh Kodi installs.</description>
         <platform>all</platform>
+            <assets>
+                <icon>icon.png</icon>
+            </assets>
     </extension>
 </addon>

@@ -10,5 +10,8 @@
         <summary lang="en">Migrate McFenlight from Real-Debrid to TorBox</summary>
         <description lang="en">Switches your existing McFenlight installation from Real-Debrid to TorBox. All other settings (Trakt, watch history, etc.) are preserved.</description>
         <platform>all</platform>
+            <assets>
+                <icon>icon.png</icon>
+            </assets>
     </extension>
 </addon>

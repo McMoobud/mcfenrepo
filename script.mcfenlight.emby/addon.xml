@@ -10,5 +10,8 @@
         <summary lang="en">Install Emby for Kodi</summary>
         <description lang="en">Installs the Emby repository and Emby for Kodi addon. Emby will run its own setup wizard after Kodi restarts.</description>
         <platform>all</platform>
+            <assets>
+                <icon>icon.png</icon>
+            </assets>
     </extension>
 </addon>
