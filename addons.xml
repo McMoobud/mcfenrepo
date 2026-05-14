@@ -90,7 +90,7 @@
             </assets>
         </extension>
     </addon>
-    <addon id="service.mcfenlight.backgrounds" name="McFenlight Backgrounds" version="1.0.2" provider-name="McMoobud">
+    <addon id="service.mcfenlight.backgrounds" name="McFenlight Backgrounds" version="1.0.3" provider-name="McMoobud">
         <requires>
             <import addon="xbmc.python" version="3.0.0" />
         </requires>
