@@ -46,6 +46,17 @@ def install_zip(zip_path):
         zf.extractall(ADDONS_PATH)
 
 
+def set_kodi_addon_updates_notify():
+    payload = json.dumps({
+        'jsonrpc': '2.0',
+        'method': 'Settings.SetSettingValue',
+        'params': {'setting': 'general.addonupdates', 'value': 1},
+        'id': 1
+    })
+    xbmc.executeJSONRPC(payload)
+    log('Kodi addon update mode set to Notify')
+
+
 def set_kodi_language_defaults():
     settings = [
         ('locale.audiolanguage', 'default'),
@@ -274,6 +285,8 @@ def main():
     dialog.update(88, 'Setting language preferences...')
     set_kodi_language_defaults()
 
+
+    set_kodi_addon_updates_notify()
     dialog.update(92, 'Addon installation complete!')
     xbmc.sleep(1000)
     dialog.close()
