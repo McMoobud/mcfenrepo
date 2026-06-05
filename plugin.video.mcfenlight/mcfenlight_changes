@@ -1,3 +1,6 @@
+[COLOR dodgerblue][B]Version 2.2.11[/B][/COLOR]
+- Tools -> Update Utilities restored: Check For Updates, Rollback to a Previous Version, and Online Changelog.
+
 [COLOR dodgerblue][B]Version 2.2.10[/B][/COLOR]
 - Fixed Trakt sign-in for installs upgraded from older builds - stale app credentials are now repaired automatically on update. You will need to re-authorize Trakt once: Settings -> Accounts -> Trakt -> Authorize.
 
