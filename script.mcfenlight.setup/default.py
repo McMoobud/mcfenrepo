@@ -161,6 +161,9 @@ def write_mcfenlight_settings(trakt_result):
         set_val('trakt.expires', 'string', '0', expires)
         set_val('trakt.user', 'string', 'empty_setting', 'true')
         log('Trakt tokens written to settings DB')
+        set_val('trakt.client', 'string', 'empty_setting', TRAKT_CLIENT_ID)
+        set_val('trakt.secret', 'string', 'empty_setting', TRAKT_CLIENT_SECRET)
+        log('Trakt app credentials written to settings DB')
 
     set_val('tb.token', 'string', 'empty_setting', TORBOX_API_KEY)
     set_val('tb.enabled', 'boolean', 'false', 'true')
