@@ -20,7 +20,12 @@ TEMP_PATH = xbmcvfs.translatePath('special://temp/')
 MCFENLIGHT_REPO_ZIP = 'https://mcmoobud.github.io/mcfenrepo/repository.mcfenlight/repository.mcfenlight-1.0.3.zip'
 COCOSCRAPERS_REPO_ZIP = 'https://raw.githubusercontent.com/CocoJoe2411/repository.cocoscrapers/master/zips/repository.cocoscrapers/repository.cocoscrapers-1.0.0.zip'
 
-MCFENLIGHT_ADDON_ZIP = 'https://mcmoobud.github.io/mcfenrepo/plugin.video.mcfenlight/plugin.video.mcfenlight-2.2.04.zip'
+MCFENLIGHT_PLUGIN_BASE = 'https://mcmoobud.github.io/mcfenrepo/plugin.video.mcfenlight/'
+
+def get_mcfenlight_zip_url():
+    req = Request(MCFENLIGHT_PLUGIN_BASE + 'mcfenlight_version', headers={'User-Agent': 'McFenlight Setup/1.0'})
+    v = urlopen(req, timeout=15).read().decode().strip()
+    return MCFENLIGHT_PLUGIN_BASE + 'plugin.video.mcfenlight-%s.zip' % v
 COCOSCRAPERS_ADDON_ZIP = 'https://raw.githubusercontent.com/CocoJoe2411/repository.cocoscrapers/master/zips/script.module.cocoscrapers/script.module.cocoscrapers-1.0.0.zip'
 
 TRAKT_CLIENT_ID = 'd670d157485c272e4a9385da4a8b3d1ba1d248ee93a619309ebd7f9cf6a67351'
@@ -252,7 +257,7 @@ def main():
     dialog.update(60, 'Downloading McFenlight...')
     try:
         mcfen_addon_zip = os.path.join(TEMP_PATH, 'plugin.video.mcfenlight.zip')
-        download_file(MCFENLIGHT_ADDON_ZIP, mcfen_addon_zip)
+        download_file(get_mcfenlight_zip_url(), mcfen_addon_zip)
         dialog.update(70, 'Installing McFenlight...')
         install_zip(mcfen_addon_zip)
         os.remove(mcfen_addon_zip)

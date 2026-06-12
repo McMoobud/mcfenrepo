@@ -46,6 +46,9 @@ def migrate_settings():
         set_val('tb.token', 'string', 'empty_setting', TORBOX_API_KEY)
         set_val('tb.enabled', 'boolean', 'false', 'true')
         set_val('provider.tb_cloud', 'boolean', 'false', 'true')
+        set_val('provider.external', 'boolean', 'false', 'true')
+        set_val('external_scraper.module', 'string', 'empty_setting', 'script.module.cocoscrapers')
+        set_val('external_scraper.name', 'string', 'empty_setting', 'cocoscrapers')
 
         conn.commit()
 
@@ -101,7 +104,7 @@ def main():
             'McFenlight TorBox Migrator',
             'Migration complete!\n\n'
             'Real-Debrid: Disabled\n'
-            'TorBox: Enabled and ready\n\n'
+            'TorBox: Enabled and ready\nCocoScrapers: Enabled\n\n'
             'Please restart Kodi for changes to take full effect.'
         )
         log('Migration complete: %s' % detail)

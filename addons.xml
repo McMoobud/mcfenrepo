@@ -42,7 +42,7 @@
             <platform>all</platform>
         </extension>
     </addon>
-    <addon id="script.mcfenlight.setup" name="McFenlight Setup" version="1.0.3" provider-name="McMoobud">
+    <addon id="script.mcfenlight.setup" name="McFenlight Setup" version="1.0.4" provider-name="McMoobud">
         <requires>
             <import addon="xbmc.python" version="3.0.0" />
         </requires>
@@ -58,7 +58,7 @@
             </assets>
         </extension>
     </addon>
-    <addon id="script.mcfenlight.migrate" name="McFenlight TorBox Migrator" version="1.0.1" provider-name="McMoobud">
+    <addon id="script.mcfenlight.migrate" name="McFenlight TorBox Migrator" version="1.0.2" provider-name="McMoobud">
         <requires>
             <import addon="xbmc.python" version="3.0.0" />
         </requires>
