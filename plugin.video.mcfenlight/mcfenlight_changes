@@ -1,3 +1,7 @@
+[COLOR dodgerblue][B]Version 2.2.12[/B][/COLOR]
+- Removed last remaining upstream-hosted resource (icon chooser now disabled - default icon unaffected).
+- Added network timeouts to Real-Debrid token refresh, log uploader and link shortener so a dead service can no longer freeze Kodi.
+
 [COLOR dodgerblue][B]Version 2.2.11[/B][/COLOR]
 - Tools -> Update Utilities restored: Check For Updates, Rollback to a Previous Version, and Online Changelog.
 
