@@ -1,3 +1,8 @@
+[COLOR dodgerblue][B]Version 2.2.13[/B][/COLOR]
+- Fixed Kodi favourites: adding a movie or episode to Kodi favourites now plays correctly from the favourites menu (previously stored as RunPlugin and refused to play).
+- Search dialog no longer auto-fills with your most recent query - opens empty.
+- Search history listing now refreshes immediately after a new search (was being served from disc cache).
+
 [COLOR dodgerblue][B]Version 2.2.12[/B][/COLOR]
 - Removed last remaining upstream-hosted resource (icon chooser now disabled - default icon unaffected).
 - Added network timeouts to Real-Debrid token refresh, log uploader and link shortener so a dead service can no longer freeze Kodi.
