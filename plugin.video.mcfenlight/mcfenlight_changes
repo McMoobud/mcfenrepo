@@ -1,3 +1,6 @@
+[COLOR dodgerblue][B]Version 2.2.14[/B][/COLOR]
+- Kodi favourites now survive a Kodi restart. Previously the addon generated a new random playback key on every Kodi startup, so any favourite stored before the restart was rejected with "Playback through external addons is not supported". Removed the external-playback gate entirely.
+
 [COLOR dodgerblue][B]Version 2.2.13[/B][/COLOR]
 - Fixed Kodi favourites: adding a movie or episode to Kodi favourites now plays correctly from the favourites menu (previously stored as RunPlugin and refused to play).
 - Search dialog no longer auto-fills with your most recent query - opens empty.
