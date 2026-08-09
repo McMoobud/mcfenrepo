@@ -1,3 +1,6 @@
+[COLOR dodgerblue][B]Version 2.2.16[/B][/COLOR]
+- Hardened cache reads: a single corrupted cache entry could previously make an entire cache unreadable. Bad entries are now safely discarded and rebuilt automatically instead of failing silently.
+
 [COLOR dodgerblue][B]Version 2.2.15[/B][/COLOR]
 - Fixed search history disappearing. Rescraping a source or using "Clear Scrapers Cache" was silently wiping the entire main cache (which stores your search history) because an unhandled cache type fell through to a full-cache delete. Search history is now preserved.
 - Fixed a database housekeeping bug that could delete your Personal Lists and Random Widgets databases on startup.
