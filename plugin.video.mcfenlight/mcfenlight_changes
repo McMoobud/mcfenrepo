@@ -1,3 +1,6 @@
+[COLOR dodgerblue][B]Version 2.2.21[/B][/COLOR]
+- Update prompt is now a single dialog showing the new version, what changed, and Update / Skip buttons.
+
 [COLOR dodgerblue][B]Version 2.2.20[/B][/COLOR]
 - Choosing an icon in Settings → Tools → Icon Images now updates the home screen shortcut immediately, no restart needed.
 
