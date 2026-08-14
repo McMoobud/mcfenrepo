@@ -1,3 +1,6 @@
+[COLOR dodgerblue][B]Version 2.2.24[/B][/COLOR]
+- Dead or alive, you're coming with me.
+
 [COLOR dodgerblue][B]Version 2.2.23[/B][/COLOR]
 - Fixed home screen shortcut still showing old icon on existing installs after update.
 
@@ -10,12 +13,8 @@
 [COLOR dodgerblue][B]Version 2.2.20[/B][/COLOR]
 - Choosing an icon in Settings → Tools → Icon Images now updates the home screen shortcut immediately, no restart needed.
 
-[COLOR dodgerblue][B]Version 2.2.19[/B][/COLOR]
-- Dead or alive, you're coming with me.
-
 [COLOR dodgerblue][B]Version 2.2.18[/B][/COLOR]
 - Fixed adding/removing an item from a Personal List when two lists share the same name (different authors) - it no longer overwrites the other list's contents.
-- Dead or alive, you're coming with me.
 
 [COLOR dodgerblue][B]Version 2.2.17[/B][/COLOR]
 - Fixed expired scraper results never being purged from the external cache (a broken internal delete call). The cache now correctly clears stale entries.
