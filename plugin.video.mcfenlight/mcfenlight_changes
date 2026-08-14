@@ -1,3 +1,6 @@
+[COLOR dodgerblue][B]Version 2.2.23[/B][/COLOR]
+- Fixed home screen shortcut still showing old icon on existing installs after update.
+
 [COLOR dodgerblue][B]Version 2.2.22[/B][/COLOR]
 - Home screen shortcut icon now refreshes correctly after an update or icon change, no restart needed.
 
