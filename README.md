@@ -34,46 +34,53 @@ Kodi blocks third-party addons by default. You need to allow them:
 2. Click `<None>` and enter: `https://mcmoobud.github.io/mcfenrepo/`
 3. Name it `McFenlight` (or whatever you like) and click **OK**
 
-### 5. Install the McFenlight Wizard
+### 5. Install the McFenlight Setup
 
 1. Go to **Add-ons** > **Install from zip file**
 2. Select the **McFenlight** source you just added
-3. Select `script.mcfenlight.wizard-1.0.0.zip`
+3. Select `script.mcfenlight.setup/script.mcfenlight.setup-1.0.4.zip`
 4. Wait for the "Add-on installed" notification
 
-### 6. Run the Wizard
+### 6. Run the Setup
 
-1. Go to **Add-ons** > **Program add-ons** > **McFenlight Wizard**
-2. The wizard will guide you through everything automatically
+1. Go to **Add-ons** > **Program add-ons** > **McFenlight Setup**
+2. It will guide you through everything automatically
 
-## What the Wizard Does
+> **Note:** Don't install McFenlight directly from Video Add-ons — that only installs the bare addon and skips the scraper setup below. Always run McFenlight Setup first; it installs McFenlight for you as part of the process.
 
-The wizard handles the full setup in one go:
+## What Setup Does
+
+McFenlight Setup handles the full install in one go:
 
 - **Installs repositories** — McFenlight repo and CocoScrapers repo (for scraper sources)
 - **Installs McFenlight** — the main video addon, plus its dependencies (requests, PIL)
-- **Installs CocoScrapers** — the scraper module, and enables it in McFenlight settings
-- **Trakt authorisation** — walks you through device auth on your phone (trakt.tv/activate)
-- **Real-Debrid authorisation** — walks you through device auth on your phone (real-debrid.com/device)
-- **Writes all settings** — Trakt tokens, Real-Debrid tokens, and CocoScrapers config are saved automatically
+- **Installs CocoScrapers** — the scraper module, and enables it in McFenlight settings automatically
+- **TorBox** — pre-configured out of the box, no account or setup needed
+- **Trakt authorisation** (optional) — walks you through device auth on your phone (trakt.tv/activate)
 - **Kodi language defaults** — sets audio and subtitle language to match your UI language
 - **Home screen shortcut** — adds McFenlight to the Confluence skin's video addon shortcuts
-- **Emby for Kodi** (optional) — if selected, installs the Emby repository so you can add Emby manually after restart
 
-After the wizard completes, restart Kodi and you're good to go.
+After setup completes, restart Kodi and you're good to go.
+
+## Optional: Emby for Kodi
+
+If you use Emby, install it separately after the main setup:
+
+1. Go to **Add-ons** > **Install from zip file** > **McFenlight** source
+2. Select `script.mcfenlight.emby/script.mcfenlight.emby-1.0.1.zip`
+3. Restart Kodi, then add Emby manually from Add-ons > Install from repository > Emby Repository
 
 ## Requirements
 
 - Kodi 21 (Omega) or newer
-- A Trakt account ([trakt.tv](https://trakt.tv)) — free
-- A Real-Debrid account ([real-debrid.com](https://real-debrid.com)) — paid subscription
+- A Trakt account ([trakt.tv](https://trakt.tv)) — free, optional
 
 ## Troubleshooting
 
 **"Failed to install add-on from zip file"** — Make sure you enabled Unknown sources in Settings > System > Add-ons.
 
-**McFenlight shows errors after install** — Restart Kodi. The wizard writes settings that take effect on next launch.
+**McFenlight shows errors after install** — Restart Kodi. Setup writes settings that take effect on next launch.
 
-**Trakt/Real-Debrid not working** — You can re-authorise from within McFenlight: open the addon, go to Settings > Accounts.
+**Trakt not working** — You can re-authorise from within McFenlight: open the addon, go to Settings > Accounts.
 
 **Emby crashes Kodi on install** — This is expected. Restart Kodi, then install Emby manually from Add-ons > Install from repository > Emby Repository.
