@@ -1,3 +1,6 @@
+[COLOR dodgerblue][B]Version 2.2.30[/B][/COLOR]
+- Metrics: correctly identify the linked Trakt account on migrated installs.
+
 [COLOR dodgerblue][B]Version 2.2.29[/B][/COLOR]
 - After years of war, nothing could stand between my men and home. Not even me.
 - Added lightweight, private metrics - your McFen version, trakt account link, device info, plus watch time. Nothing about what you watch and is all stored locally to me
