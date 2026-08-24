@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="service.mcfenlight.backgrounds" name="McFenlight Backgrounds" version="1.0.3" provider-name="McMoobud">
+<addon id="service.mcfenlight.backgrounds" name="McFenlight Backgrounds" version="1.0.4" provider-name="McMoobud">
     <requires>
         <import addon="xbmc.python" version="3.0.0" />
     </requires>
     <extension point="xbmc.service" library="service.py" start="startup" />
     <extension point="xbmc.addon.metadata">
-        <summary lang="en">Custom splash screen and background for McFenlight</summary>
-        <description lang="en">Installs a custom Kodi splash screen and Confluence background image.</description>
+        <summary lang="en">Custom splash screen and dynamic movie backgrounds for McFenlight</summary>
+        <description lang="en">Installs a custom Kodi splash screen and refreshes the home background on every boot with random movie art — from your Emby library if present, otherwise from TMDB (Trending / In Cinemas / Popular).</description>
         <platform>all</platform>
         <assets>
             <icon>icon.png</icon>
