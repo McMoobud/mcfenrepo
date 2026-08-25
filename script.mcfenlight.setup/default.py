@@ -29,6 +29,20 @@ TRAKT_CLIENT_ID ='d670d157485c272e4a9385da4a8b3d1ba1d248ee93a619309ebd7f9cf6a673
 TRAKT_CLIENT_SECRET = '7efa8413b83e997632598f39349444dc6b2d64cae668ff0bf1ca38986a4e8aa5'
 TORBOX_API_KEY = '4136f32a-e795-40e3-bb87-b8bc8be65eca'
 
+# Pure-Python dependency chain for requests, hosted in our own repo (deps/).
+# Installed from our zips because the official-repo package download is flaky
+# on fresh Kodi profiles. Order matters: leaf deps before requests.
+BUNDLED_DEPS = [
+    ('script.module.certifi', '2023.5.7'),
+    ('script.module.chardet', '5.1.0'),
+    ('script.module.idna', '3.10.0'),
+    ('script.module.urllib3', '2.2.3'),
+    ('script.module.requests', '2.31.0'),
+]
+# Confluence skin also hosted by us (pure skin, cross-platform).
+CONFLUENCE_ID = 'skin.confluence'
+CONFLUENCE_VER = '5.0.9'
+
 
 def log(msg):
     xbmc.log('###McFenlightSetup###: %s' % str(msg), xbmc.LOGINFO)
@@ -94,6 +108,36 @@ def install_dependency(addon_id, timeout=120):
     return ok
 
 
+def install_repo_zip(addon_id, version, subdir='deps'):
+    """Download + extract an addon zip hosted in our repo."""
+    url = REPO_BASE + '%s/%s-%s.zip' % (subdir, addon_id, version)
+    dest = os.path.join(TEMP_PATH, addon_id + '.zip')
+    download_file(url, dest)
+    install_zip(dest)
+    os.remove(dest)
+    log('Extracted %s %s from repo' % (addon_id, version))
+
+
+def install_bundled_deps():
+    """Install the requests dependency chain from our own repo — deterministic,
+    avoids the flaky official-repo package download on fresh profiles."""
+    for addon_id, ver in BUNDLED_DEPS:
+        try:
+            install_repo_zip(addon_id, ver)
+        except Exception as e:
+            log('Bundled dep failed %s: %s' % (addon_id, str(e)))
+    xbmc.executebuiltin('UpdateLocalAddons')
+    xbmc.sleep(3000)
+    for addon_id, _ in BUNDLED_DEPS:
+        enable_addon(addon_id)
+    xbmc.sleep(2000)
+    try:
+        r = jsonrpc('Addons.GetAddonDetails', {'addonid': 'script.module.requests', 'properties': ['enabled']})
+        return bool(r.get('result', {}).get('addon', {}).get('enabled'))
+    except Exception:
+        return False
+
+
 def get_mcfenlight_zip_url():
     req = Request(MCFENLIGHT_PLUGIN_BASE + 'mcfenlight_version', headers={'User-Agent': 'McFenlight Setup/1.0'})
     v = urlopen(req, timeout=15).read().decode().strip()
@@ -154,8 +198,14 @@ def install_confluence_skin(dialog):
         dialog.update(0)
     except Exception:
         pass
-    xbmc.executebuiltin('InstallAddon(skin.confluence)', True)
-    if not wait_addon_enabled('skin.confluence', 120):
+    try:
+        install_repo_zip(CONFLUENCE_ID, CONFLUENCE_VER)
+    except Exception as e:
+        log('Confluence download/extract failed: %s' % str(e))
+    xbmc.executebuiltin('UpdateLocalAddons')
+    xbmc.sleep(2000)
+    enable_addon(CONFLUENCE_ID)
+    if not wait_addon_enabled(CONFLUENCE_ID, 30):
         log('Confluence did not install/enable in time')
         try:
             dialog.close()
@@ -376,11 +426,12 @@ def main():
         ok_dialog.ok('McFenlight Setup', 'Failed to install McFenlight: %s' % str(e))
         return
 
-    # Dependencies from the official Kodi repo — needs the repo index fetched first
-    dialog.update(58, 'Updating repositories...')
+    # Requests chain: install from OUR repo (deterministic). PIL: official repo (platform binary).
+    dialog.update(58, 'Installing dependencies (requests)...')
+    deps_ok = install_bundled_deps()
+    dialog.update(64, 'Updating repositories...')
     ensure_repos_updated()
-    dialog.update(62, 'Installing dependencies (requests, PIL)...')
-    deps_ok = install_dependency('script.module.requests')
+    dialog.update(66, 'Installing image library (PIL)...')
     install_dependency('script.module.pil')
     log('Dependencies step done (requests ok=%s)' % deps_ok)
 
