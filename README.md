@@ -10,15 +10,9 @@ Download and install Kodi 21 (Omega) or newer from [kodi.tv/download](https://ko
 
 Available for Windows, Mac, Android, Fire TV, Linux, and more.
 
-### 2. Install Confluence Skin (Recommended)
+### 2. (Skip) Confluence Skin — now automatic
 
-The default Kodi skin works fine, but Confluence gives a cleaner experience:
-
-1. Open Kodi
-2. Go to **Settings** (gear icon) > **Interface** > **Skin**
-3. Click **Skin** > **Get more...**
-4. Select **Confluence** and install it
-5. When prompted, switch to the new skin
+You no longer need to install Confluence yourself — **McFenlight Setup installs it and switches to it for you** as part of the process. Just install Kodi and continue.
 
 ### 3. Enable Unknown Sources
 
@@ -38,7 +32,7 @@ Kodi blocks third-party addons by default. You need to allow them:
 
 1. Go to **Add-ons** > **Install from zip file**
 2. Select the **McFenlight** source you just added
-3. Select `script.mcfenlight.setup/script.mcfenlight.setup-1.0.4.zip`
+3. Select `script.mcfenlight.setup/script.mcfenlight.setup-1.1.0.zip`
 4. Wait for the "Add-on installed" notification
 
 ### 6. Run the Setup
@@ -57,8 +51,10 @@ McFenlight Setup handles the full install in one go:
 - **Installs CocoScrapers** — the scraper module, and enables it in McFenlight settings automatically
 - **TorBox** — pre-configured out of the box, no account or setup needed
 - **Trakt authorisation** (optional) — walks you through device auth on your phone (trakt.tv/activate)
+- **Confluence skin** — installs it from the official Kodi repo and switches to it automatically
+- **Dynamic backgrounds** — installs the McFenlight Backgrounds service (random movie art on every boot)
 - **Kodi language defaults** — sets audio and subtitle language to match your UI language
-- **Home screen shortcut** — adds McFenlight to the Confluence skin's video addon shortcuts
+- **Home screen shortcut + menu cleanup** — adds McFenlight to the Confluence home screen and hides unused menu items
 
 After setup completes, restart Kodi and you're good to go.
 

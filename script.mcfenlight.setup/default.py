@@ -7,6 +7,7 @@ import os
 import time
 import zipfile
 import sqlite3
+import re
 
 try:
     from urllib.request import Request, urlopen
@@ -17,18 +18,14 @@ ADDONS_PATH = xbmcvfs.translatePath('special://home/addons/')
 ADDON_DATA = xbmcvfs.translatePath('special://profile/addon_data/')
 TEMP_PATH = xbmcvfs.translatePath('special://temp/')
 
-MCFENLIGHT_REPO_ZIP = 'https://mcmoobud.github.io/mcfenrepo/repository.mcfenlight/repository.mcfenlight-1.0.3.zip'
+REPO_BASE = 'https://mcmoobud.github.io/mcfenrepo/'
+MCFENLIGHT_REPO_ZIP = REPO_BASE + 'repository.mcfenlight/repository.mcfenlight-1.0.3.zip'
 COCOSCRAPERS_REPO_ZIP = 'https://raw.githubusercontent.com/CocoJoe2411/repository.cocoscrapers/master/zips/repository.cocoscrapers/repository.cocoscrapers-1.0.0.zip'
-
-MCFENLIGHT_PLUGIN_BASE = 'https://mcmoobud.github.io/mcfenrepo/plugin.video.mcfenlight/'
-
-def get_mcfenlight_zip_url():
-    req = Request(MCFENLIGHT_PLUGIN_BASE + 'mcfenlight_version', headers={'User-Agent': 'McFenlight Setup/1.0'})
-    v = urlopen(req, timeout=15).read().decode().strip()
-    return MCFENLIGHT_PLUGIN_BASE + 'plugin.video.mcfenlight-%s.zip' % v
 COCOSCRAPERS_ADDON_ZIP = 'https://raw.githubusercontent.com/CocoJoe2411/repository.cocoscrapers/master/zips/script.module.cocoscrapers/script.module.cocoscrapers-1.0.0.zip'
 
-TRAKT_CLIENT_ID = 'd670d157485c272e4a9385da4a8b3d1ba1d248ee93a619309ebd7f9cf6a67351'
+MCFENLIGHT_PLUGIN_BASE = REPO_BASE + 'plugin.video.mcfenlight/'
+
+TRAKT_CLIENT_ID ='d670d157485c272e4a9385da4a8b3d1ba1d248ee93a619309ebd7f9cf6a67351'
 TRAKT_CLIENT_SECRET = '7efa8413b83e997632598f39349444dc6b2d64cae668ff0bf1ca38986a4e8aa5'
 TORBOX_API_KEY = '4136f32a-e795-40e3-bb87-b8bc8be65eca'
 
@@ -39,7 +36,7 @@ def log(msg):
 
 def download_file(url, dest):
     req = Request(url, headers={'User-Agent': 'McFenlight Setup/1.0'})
-    resp = urlopen(req, timeout=30)
+    resp = urlopen(req, timeout=60)
     data = resp.read()
     with open(dest, 'wb') as f:
         f.write(data)
@@ -51,32 +48,119 @@ def install_zip(zip_path):
         zf.extractall(ADDONS_PATH)
 
 
+def jsonrpc(method, params):
+    return json.loads(xbmc.executeJSONRPC(json.dumps(
+        {'jsonrpc': '2.0', 'method': method, 'params': params, 'id': 1})))
+
+
+def enable_addon(addon_id):
+    jsonrpc('Addons.SetAddonEnabled', {'addonid': addon_id, 'enabled': True})
+    log('Enabled %s' % addon_id)
+
+
+def wait_addon_enabled(addon_id, timeout=60):
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            r = jsonrpc('Addons.GetAddonDetails', {'addonid': addon_id, 'properties': ['enabled']})
+            if r.get('result', {}).get('addon', {}).get('enabled'):
+                return True
+        except Exception:
+            pass
+        xbmc.sleep(1000)
+    return False
+
+
+def get_mcfenlight_zip_url():
+    req = Request(MCFENLIGHT_PLUGIN_BASE + 'mcfenlight_version', headers={'User-Agent': 'McFenlight Setup/1.0'})
+    v = urlopen(req, timeout=15).read().decode().strip()
+    return MCFENLIGHT_PLUGIN_BASE + 'plugin.video.mcfenlight-%s.zip' % v
+
+
+def get_repo_addon_version(addon_id):
+    """Read a hosted addon's version from the repo addons.xml."""
+    req = Request(REPO_BASE + 'addons.xml', headers={'User-Agent': 'McFenlight Setup/1.0'})
+    xml = urlopen(req, timeout=15).read().decode('utf-8')
+    m = re.search(r'id="%s"[^>]*\bversion="([^"]+)"' % re.escape(addon_id), xml)
+    return m.group(1) if m else None
+
+
 def set_kodi_addon_updates_notify():
-    payload = json.dumps({
-        'jsonrpc': '2.0',
-        'method': 'Settings.SetSettingValue',
-        'params': {'setting': 'general.addonupdates', 'value': 1},
-        'id': 1
-    })
-    xbmc.executeJSONRPC(payload)
+    jsonrpc('Settings.SetSettingValue', {'setting': 'general.addonupdates', 'value': 1})
     log('Kodi addon update mode set to Notify')
 
 
 def set_kodi_language_defaults():
-    settings = [
-        ('locale.audiolanguage', 'default'),
-        ('locale.subtitlelanguage', 'default'),
-        ('subtitles.languages', 'default'),
-    ]
-    for setting, value in settings:
-        payload = json.dumps({
-            'jsonrpc': '2.0',
-            'method': 'Settings.SetSettingValue',
-            'params': {'setting': setting, 'value': value},
-            'id': 1
-        })
-        xbmc.executeJSONRPC(payload)
+    for setting in ('locale.audiolanguage', 'locale.subtitlelanguage', 'subtitles.languages'):
+        jsonrpc('Settings.SetSettingValue', {'setting': setting, 'value': 'default'})
     log('Kodi language defaults set to UI language')
+
+
+def install_backgrounds_service(dialog):
+    """Download + install the backgrounds service from the McFenlight repo."""
+    try:
+        version = get_repo_addon_version('service.mcfenlight.backgrounds')
+        if not version:
+            log('Backgrounds version not found in addons.xml — skipping')
+            return
+        url = REPO_BASE + 'service.mcfenlight.backgrounds/service.mcfenlight.backgrounds-%s.zip' % version
+        dest = os.path.join(TEMP_PATH, 'service.mcfenlight.backgrounds.zip')
+        download_file(url, dest)
+        install_zip(dest)
+        os.remove(dest)
+        xbmc.executebuiltin('UpdateLocalAddons')
+        xbmc.sleep(2000)
+        enable_addon('service.mcfenlight.backgrounds')
+        log('Backgrounds service %s installed' % version)
+    except Exception as e:
+        log('Backgrounds service install failed: %s' % str(e))
+
+
+def install_confluence_skin(dialog):
+    """Install Confluence from the official Kodi repo and switch to it.
+    Returns True if Confluence is active afterwards."""
+    try:
+        cur = jsonrpc('Settings.GetSettingValue', {'setting': 'lookandfeel.skin'})
+        if cur.get('result', {}).get('value', '') == 'skin.confluence':
+            return True
+    except Exception:
+        pass
+
+    try:
+        dialog.create('McFenlight Setup', 'Installing Confluence skin...')
+        dialog.update(0)
+    except Exception:
+        pass
+    xbmc.executebuiltin('InstallAddon(skin.confluence)')
+    if not wait_addon_enabled('skin.confluence', 90):
+        log('Confluence did not install/enable in time')
+        try:
+            dialog.close()
+        except Exception:
+            pass
+        return False
+    try:
+        dialog.update(80, 'Applying Confluence skin...')
+    except Exception:
+        pass
+
+    # JSON-RPC skin change applies directly (no "keep skin?" dialog).
+    jsonrpc('Settings.SetSettingValue', {'setting': 'lookandfeel.skin', 'value': 'skin.confluence'})
+    xbmc.sleep(4000)  # let the skin reload before we set its strings
+    try:
+        dialog.close()
+    except Exception:
+        pass
+    log('Switched skin to Confluence')
+    return True
+
+
+def apply_confluence_tweaks():
+    """Home shortcut + menu cleanup — only meaningful once Confluence is active."""
+    xbmc.executebuiltin('Skin.SetString(HomeVideosButton1,plugin.video.mcfenlight)')
+    for item in ('LiveTV', 'Radio', 'Games', 'Weather', 'Pictures'):
+        xbmc.executebuiltin('Skin.SetBool(HomeMenuNo%sButton)' % item)
+    log('Applied Confluence home shortcut + menu cleanup')
 
 
 def trakt_auth(dialog):
@@ -202,20 +286,21 @@ def main():
 
     if not ok_dialog.yesno(
         'McFenlight Setup',
-        'This will install McFenlight and everything it needs.\n\n'
-        'TorBox is pre-configured — no debrid setup required.\n\n'
-        'You\'ll be asked to authorise Trakt on your phone.\n\n'
+        'This will install and set up everything:\n\n'
+        'McFenlight + CocoScrapers, TorBox (pre-configured), the Confluence skin, '
+        'and the dynamic backgrounds.\n\n'
+        'You\'ll be asked to set up Trakt along the way.\n\n'
         'Continue?'
     ):
         return
 
-    # Step 1: Download and install repos
+    # Step 1: repos
     dialog.create('McFenlight Setup', 'Downloading CocoScrapers repository...')
     dialog.update(0)
     try:
         coco_zip = os.path.join(TEMP_PATH, 'repository.cocoscrapers.zip')
         download_file(COCOSCRAPERS_REPO_ZIP, coco_zip)
-        dialog.update(10, 'Installing CocoScrapers repository...')
+        dialog.update(8, 'Installing CocoScrapers repository...')
         install_zip(coco_zip)
         os.remove(coco_zip)
         log('CocoScrapers repo installed')
@@ -225,11 +310,11 @@ def main():
         ok_dialog.ok('McFenlight Setup', 'Failed to download CocoScrapers repository: %s' % str(e))
         return
 
-    dialog.update(20, 'Downloading McFenlight repository...')
+    dialog.update(16, 'Downloading McFenlight repository...')
     try:
         mcfen_zip = os.path.join(TEMP_PATH, 'repository.mcfenlight.zip')
         download_file(MCFENLIGHT_REPO_ZIP, mcfen_zip)
-        dialog.update(30, 'Installing McFenlight repository...')
+        dialog.update(22, 'Installing McFenlight repository...')
         install_zip(mcfen_zip)
         os.remove(mcfen_zip)
         log('McFenlight repo installed')
@@ -239,12 +324,12 @@ def main():
         ok_dialog.ok('McFenlight Setup', 'Failed to download McFenlight repository: %s' % str(e))
         return
 
-    # Step 2: Download and install addons directly
-    dialog.update(40, 'Downloading CocoScrapers module...')
+    # Step 2: addons (CocoScrapers module + McFenlight plugin)
+    dialog.update(30, 'Downloading CocoScrapers module...')
     try:
         coco_addon_zip = os.path.join(TEMP_PATH, 'script.module.cocoscrapers.zip')
         download_file(COCOSCRAPERS_ADDON_ZIP, coco_addon_zip)
-        dialog.update(50, 'Installing CocoScrapers module...')
+        dialog.update(38, 'Installing CocoScrapers module...')
         install_zip(coco_addon_zip)
         os.remove(coco_addon_zip)
         log('CocoScrapers module extracted')
@@ -254,11 +339,11 @@ def main():
         ok_dialog.ok('McFenlight Setup', 'Failed to install CocoScrapers: %s' % str(e))
         return
 
-    dialog.update(60, 'Downloading McFenlight...')
+    dialog.update(46, 'Downloading McFenlight...')
     try:
         mcfen_addon_zip = os.path.join(TEMP_PATH, 'plugin.video.mcfenlight.zip')
         download_file(get_mcfenlight_zip_url(), mcfen_addon_zip)
-        dialog.update(70, 'Installing McFenlight...')
+        dialog.update(54, 'Installing McFenlight...')
         install_zip(mcfen_addon_zip)
         os.remove(mcfen_addon_zip)
         log('McFenlight addon extracted')
@@ -268,62 +353,57 @@ def main():
         ok_dialog.ok('McFenlight Setup', 'Failed to install McFenlight: %s' % str(e))
         return
 
-    # Install dependencies from the official Kodi repo
-    dialog.update(75, 'Installing dependencies (requests, PIL)...')
+    # Dependencies from the official Kodi repo
+    dialog.update(60, 'Installing dependencies (requests, PIL)...')
     xbmc.executebuiltin('InstallAddon(script.module.requests)')
     xbmc.sleep(5000)
     xbmc.executebuiltin('InstallAddon(script.module.pil)')
     xbmc.sleep(5000)
     log('Dependencies installed')
 
-    # Register everything with Kodi and enable
-    dialog.update(82, 'Activating addons...')
+    # Register + enable
+    dialog.update(66, 'Activating addons...')
     xbmc.executebuiltin('UpdateLocalAddons')
     xbmc.sleep(3000)
     for addon_id in ['repository.cocoscrapers', 'repository.mcfenlight',
                      'script.module.cocoscrapers', 'plugin.video.mcfenlight']:
-        xbmc.executeJSONRPC(json.dumps({
-            'jsonrpc': '2.0', 'method': 'Addons.SetAddonEnabled',
-            'params': {'addonid': addon_id, 'enabled': True}, 'id': 1
-        }))
-        log('Enabled %s' % addon_id)
+        enable_addon(addon_id)
     xbmc.sleep(5000)
 
-    # Step 3: Set Kodi language defaults
-    dialog.update(88, 'Setting language preferences...')
+    # Step 3: backgrounds service
+    dialog.update(72, 'Installing dynamic backgrounds...')
+    install_backgrounds_service(dialog)
+
+    # Step 4: Kodi prefs
+    dialog.update(78, 'Setting preferences...')
     set_kodi_language_defaults()
-
-
     set_kodi_addon_updates_notify()
-    dialog.update(92, 'Addon installation complete!')
+    dialog.update(82, 'Core install complete!')
     xbmc.sleep(1000)
     dialog.close()
 
-    # Step 4: Trakt auth
-    if ok_dialog.yesno('McFenlight Setup', 'Addons installed!\n\nWould you like to set up Trakt now?\n(You\'ll need your phone)'):
+    # Step 5: Trakt (optional)
+    if ok_dialog.yesno('McFenlight Setup', 'Core install done!\n\nSet up Trakt now?\n(You\'ll need your phone)'):
         trakt_result = trakt_auth(xbmcgui.DialogProgress())
     else:
         trakt_result = None
 
-    # Step 5: Write TorBox key and Trakt tokens to McFenlight settings
+    # Step 6: write TorBox + Trakt + CocoScrapers settings
     write_mcfenlight_settings(trakt_result)
 
-    # Add McFenlight to Confluence skin home screen shortcut
-    xbmc.executebuiltin('Skin.SetString(HomeVideosButton1,plugin.video.mcfenlight)')
-    log('McFenlight added to home screen video shortcut 1')
-
-    # Clean up home menu — hide unused items
-    for item in ['LiveTV', 'Radio', 'Games', 'Weather', 'Pictures']:
-        xbmc.executebuiltin('Skin.SetBool(HomeMenuNo%sButton)' % item)
-    log('Hidden unused home menu items')
+    # Step 7: Confluence skin + tweaks (do last — switching reloads the skin)
+    confluence_ok = install_confluence_skin(dialog)
+    if confluence_ok:
+        apply_confluence_tweaks()
 
     # Done
     msg = 'McFenlight setup complete!\n\n'
     msg += 'TorBox: Ready (pre-configured)\n'
-    msg += 'Trakt: %s\n' % ('Authorised' if trakt_result else 'Skipped — set up in McFenlight settings later')
+    msg += 'Trakt: %s\n' % ('Authorised' if trakt_result else 'Skipped')
+    msg += 'Confluence skin: %s\n' % ('Active' if confluence_ok else 'Not set — install manually')
+    msg += '\nUsing an Emby server? Run "McFenlight Emby Setup" separately.\n'
     msg += '\nPlease restart Kodi now for everything to take effect.'
     ok_dialog.ok('McFenlight Setup', msg)
-
     log('Setup complete')
 
 
