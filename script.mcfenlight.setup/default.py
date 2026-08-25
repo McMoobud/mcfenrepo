@@ -158,9 +158,10 @@ def set_kodi_addon_updates_notify():
 
 
 def set_kodi_language_defaults():
-    for setting in ('locale.audiolanguage', 'locale.subtitlelanguage', 'subtitles.languages'):
-        jsonrpc('Settings.SetSettingValue', {'setting': setting, 'value': 'default'})
-    log('Kodi language defaults set to UI language')
+    # Audio follows the UI language; subtitles OFF by default.
+    jsonrpc('Settings.SetSettingValue', {'setting': 'locale.audiolanguage', 'value': 'default'})
+    jsonrpc('Settings.SetSettingValue', {'setting': 'locale.subtitlelanguage', 'value': 'none'})
+    log('Audio = UI language; subtitles off by default')
 
 
 def install_backgrounds_service(dialog):
@@ -218,14 +219,40 @@ def install_confluence_skin(dialog):
         pass
 
     # JSON-RPC skin change applies directly (no "keep skin?" dialog).
-    jsonrpc('Settings.SetSettingValue', {'setting': 'lookandfeel.skin', 'value': 'skin.confluence'})
-    xbmc.sleep(4000)  # let the skin reload before we set its strings
     try:
-        dialog.close()
+        dialog.close()  # close our progress so it doesn't sit under the keep dialog
     except Exception:
         pass
+    jsonrpc('Settings.SetSettingValue', {'setting': 'lookandfeel.skin', 'value': 'skin.confluence'})
+    confirm_keep_skin()  # auto-answer "Keep this change?"
+    xbmc.sleep(3000)     # let the skin settle before we set its strings
     log('Switched skin to Confluence')
     return True
+
+
+def confirm_keep_skin():
+    """Auto-confirm Kodi's 'Keep this skin change?' dialog so it doesn't sit
+    over the final setup dialog. Yes button = control id 11."""
+    for _ in range(30):  # up to ~15s
+        if xbmc.getCondVisibility('Window.IsActive(yesnodialog)'):
+            xbmc.executebuiltin('SendClick(11)')
+            xbmc.sleep(500)
+            return True
+        xbmc.sleep(500)
+    return False
+
+
+def trigger_backgrounds():
+    """Run the backgrounds service now (it normally only runs at boot) so the
+    background is applied to the freshly-active Confluence skin on first install."""
+    try:
+        jsonrpc('Addons.SetAddonEnabled', {'addonid': 'service.mcfenlight.backgrounds', 'enabled': False})
+        xbmc.sleep(1500)
+        jsonrpc('Addons.SetAddonEnabled', {'addonid': 'service.mcfenlight.backgrounds', 'enabled': True})
+        xbmc.sleep(12000)  # service waits ~8s then downloads + sets the background
+        log('Backgrounds service re-triggered under Confluence')
+    except Exception as e:
+        log('Backgrounds trigger failed: %s' % str(e))
 
 
 def apply_confluence_tweaks():
@@ -469,6 +496,7 @@ def main():
     confluence_ok = install_confluence_skin(dialog)
     if confluence_ok:
         apply_confluence_tweaks()
+        trigger_backgrounds()  # apply movie art now, under the active Confluence skin
 
     # Done
     msg = 'McFenlight setup complete!\n\n'
