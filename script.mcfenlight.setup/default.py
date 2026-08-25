@@ -71,6 +71,29 @@ def wait_addon_enabled(addon_id, timeout=60):
     return False
 
 
+def ensure_repos_updated():
+    """Fresh Kodi profiles haven't fetched the official repo index yet, so
+    InstallAddon() silently no-ops. Force a repo refresh and give it a moment."""
+    log('Forcing repository index update...')
+    xbmc.executebuiltin('UpdateAddonRepos', True)
+    xbmc.sleep(8000)
+
+
+def install_dependency(addon_id, timeout=120):
+    """Install an addon from a repo and wait until it is actually enabled."""
+    try:
+        r = jsonrpc('Addons.GetAddonDetails', {'addonid': addon_id, 'properties': ['enabled']})
+        if r.get('result', {}).get('addon', {}).get('enabled'):
+            log('%s already present' % addon_id)
+            return True
+    except Exception:
+        pass
+    xbmc.executebuiltin('InstallAddon(%s)' % addon_id, True)
+    ok = wait_addon_enabled(addon_id, timeout)
+    log('Dependency %s: %s' % (addon_id, 'installed' if ok else 'FAILED'))
+    return ok
+
+
 def get_mcfenlight_zip_url():
     req = Request(MCFENLIGHT_PLUGIN_BASE + 'mcfenlight_version', headers={'User-Agent': 'McFenlight Setup/1.0'})
     v = urlopen(req, timeout=15).read().decode().strip()
@@ -131,8 +154,8 @@ def install_confluence_skin(dialog):
         dialog.update(0)
     except Exception:
         pass
-    xbmc.executebuiltin('InstallAddon(skin.confluence)')
-    if not wait_addon_enabled('skin.confluence', 90):
+    xbmc.executebuiltin('InstallAddon(skin.confluence)', True)
+    if not wait_addon_enabled('skin.confluence', 120):
         log('Confluence did not install/enable in time')
         try:
             dialog.close()
@@ -353,16 +376,16 @@ def main():
         ok_dialog.ok('McFenlight Setup', 'Failed to install McFenlight: %s' % str(e))
         return
 
-    # Dependencies from the official Kodi repo
-    dialog.update(60, 'Installing dependencies (requests, PIL)...')
-    xbmc.executebuiltin('InstallAddon(script.module.requests)')
-    xbmc.sleep(5000)
-    xbmc.executebuiltin('InstallAddon(script.module.pil)')
-    xbmc.sleep(5000)
-    log('Dependencies installed')
+    # Dependencies from the official Kodi repo — needs the repo index fetched first
+    dialog.update(58, 'Updating repositories...')
+    ensure_repos_updated()
+    dialog.update(62, 'Installing dependencies (requests, PIL)...')
+    deps_ok = install_dependency('script.module.requests')
+    install_dependency('script.module.pil')
+    log('Dependencies step done (requests ok=%s)' % deps_ok)
 
     # Register + enable
-    dialog.update(66, 'Activating addons...')
+    dialog.update(68, 'Activating addons...')
     xbmc.executebuiltin('UpdateLocalAddons')
     xbmc.sleep(3000)
     for addon_id in ['repository.cocoscrapers', 'repository.mcfenlight',
@@ -398,6 +421,7 @@ def main():
 
     # Done
     msg = 'McFenlight setup complete!\n\n'
+    msg += 'Dependencies: %s\n' % ('OK' if deps_ok else 'FAILED — re-run setup (repo index may not have been ready)')
     msg += 'TorBox: Ready (pre-configured)\n'
     msg += 'Trakt: %s\n' % ('Authorised' if trakt_result else 'Skipped')
     msg += 'Confluence skin: %s\n' % ('Active' if confluence_ok else 'Not set — install manually')
