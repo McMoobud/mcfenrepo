@@ -1,10 +1,22 @@
-<addon id="plugin.video.mcfenlight" name="McFenlight" provider-name="McMoobud" version="2.3.1">
+<addon id="plugin.video.mcfenlight" name="McFenlight" provider-name="McMoobud" version="2.3.2">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
         <import addon="script.module.requests" version="2.19.1"/>
     </requires>
     <extension point="xbmc.python.pluginsource" library="resources/lib/fenlight.py">
         <provides>video</provides>
+    </extension>
+    <extension point="kodi.context.item">
+        <menu id="kodi.core.main">
+            <item library="resources/lib/context_find.py">
+                <label>[COLOR FF54C9F0]McFen: Find[/COLOR]</label>
+                <visible>[String.IsEqual(ListItem.DBType,movie) | String.IsEqual(ListItem.DBType,tvshow) | String.IsEqual(ListItem.DBType,season) | String.IsEqual(ListItem.DBType,episode)] + !String.Contains(Container.PluginName,mcfenlight) + !String.Contains(ListItem.FileNameAndPath,plugin.video.mcfenlight) + !String.Contains(ListItem.FolderPath,plugin.video.mcfenlight)</visible>
+            </item>
+            <item library="resources/lib/context_play.py">
+                <label>[COLOR FF54C9F0]McFen: Play[/COLOR]</label>
+                <visible>[String.IsEqual(ListItem.DBType,movie) | String.IsEqual(ListItem.DBType,episode)] + !String.Contains(Container.PluginName,mcfenlight) + !String.Contains(ListItem.FileNameAndPath,plugin.video.mcfenlight) + !String.Contains(ListItem.FolderPath,plugin.video.mcfenlight)</visible>
+            </item>
+        </menu>
     </extension>
     <extension point="xbmc.service" library="resources/lib/service.py"/>
     <extension point="xbmc.python.module" library="resources/lib/"/>
